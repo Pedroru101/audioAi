@@ -1,0 +1,16 @@
+{
+    "ui_mode": "floating",
+    "audio_input_device": "default",
+    "audio_output_device": "default",
+    "save_path": "C:\\Users\\quint\\MeetingAssistant_Recordings",
+    "llm_provider": "api",
+    "api_key": "IR9rwJZUo2T3BlbkFJb5rK6br4aUX8zPDZPGUrKk2Jk_73elTlLQVJe67yrjWZfdr7ZwqLgS_xPETKKRLe5haxjlPkUA",
+    "api_model_name": "gpt-3.5",
+    "ollama_host": "http://localhost",
+    "ollama_port": "8080",
+    "local_model_name": "Error de conexión a http://localhost:8080/api/tags. ¿Está Ollama en ejecución?",
+    "summary_prompt": "Eres un asistente ejecutivo experto en productividad. Tu tarea es analizar la siguiente transcripción de una reunión y generar un resumen profesional en formato Markdown. El resumen debe ser claro, conciso y fácil de leer.\n\nIncluye las siguientes secciones obligatorias:\n1.  **Participantes Clave:** Lista de las personas más importantes en la conversación.\n2.  **Puntos Clave Discutidos:** Un resumen en viñetas de los temas principales que se trataron.\n3.  **Decisiones Tomadas:** Una lista clara de cualquier decisión que se haya acordado durante la reunión.\n4.  **Próximos Pasos:** Menciona cualquier tarea o seguimiento que se haya asignado, si aplica.\n\nA continuación, la transcripción de la reunión:\n{transcription}",
+    "action_items_prompt": "Analiza la siguiente transcripción de una reunión con un enfoque en la productividad y la acción. Tu único objetivo es identificar y extraer un máximo de 3 propuestas de acción claras, directas y realizables.\n\n**Reglas Importantes:**\n- Cada propuesta debe ser una tarea específica que una persona o equipo pueda ejecutar.\n- Las propuestas deben ser concisas.\n- Si en la transcripción no se discute ninguna acción concreta o tarea a realizar, responde únicamente con \"N/A\". No inventes acciones.\n\n**Formato de Salida (si hay acciones):**\n- [ ] Acción 1: [Descripción clara y directa de la tarea].\n- [ ] Acción 2: [Descripción clara y directa de la tarea].\n- [ ] Acción 3: [Descripción clara y directa de la tarea].\n\nA continuación, la transcripción:\n{transcription}",
+    "transcription_provider": "local",
+    "whisper_api_key": ""
+}

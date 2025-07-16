@@ -1,0 +1,57 @@
+{
+  "audio": {
+    "sample_rate": 44100,
+    "channels": 2,
+    "chunk_size": 1024,
+    "format": "wav",
+    "input_device": null,
+    "output_device": null,
+    "record_system_audio": true,
+    "record_microphone": true
+  },
+  "transcription": {
+    "provider": "whisper_local",
+    "model": "base",
+    "language": "es",
+    "api_key": "",
+    "chunk_duration": 30
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-3.5-turbo",
+    "api_key": "",
+    "base_url": "",
+    "temperature": 0.3,
+    "max_tokens": 1500
+  },
+  "prompts": {
+    "summary": "Analiza la siguiente transcripción de una reunión laboral y genera un resumen conciso y profesional.\n\nIncluye:\n- Tema principal de la reunión\n- Puntos clave discutidos\n- Decisiones tomadas\n- Participantes mencionados\n\nTranscripción:\n{transcription}\n\nResumen:",
+    "actions": "Basándote en la siguiente transcripción de reunión, identifica si hay tareas, compromisos o acciones específicas que requieren seguimiento.\n\nSi encuentras acciones concretas, genera exactamente 3 propuestas de acción priorizadas y orientadas a:\n- Eficiencia y productividad\n- Resolución de problemas\n- Seguimiento de compromisos\n\nSi NO hay acciones específicas o tareas claras, responde únicamente: \"NO_ACTIONS\"\n\nTranscripción:\n{transcription}\n\nPropuestas de acción:"
+  },
+  "ui": {
+    "mode": "floating",
+    "theme": "dark",
+    "always_on_top": true,
+    "minimize_to_tray": true,
+    "show_notifications": true,
+    "notification_sound": true,
+    "auto_start_recording": false
+  },
+  "files": {
+    "save_audio": true,
+    "save_transcription": true,
+    "save_summary": true,
+    "save_actions": true,
+    "export_format": "txt",
+    "filename_format": "%Y-%m-%d_%H-%M__%H-%M"
+  },
+  "notifications": {
+    "show_start_recording": true,
+    "show_stop_recording": true,
+    "show_processing": true,
+    "show_completed": true,
+    "sound_enabled": true,
+    "popup_duration": 5,
+    "show_notifications": true
+  }
+}
