@@ -1,0 +1,17 @@
+# Dependencias adicionales para la interfaz moderna
+
+# CustomTkinter - Framework moderno para interfaces
+customtkinter>=5.2.0
+
+# Pillow - Para efectos visuales y procesamiento de imágenes
+Pillow>=10.0.0
+
+# Otras dependencias ya incluidas en requirements.txt base:
+# - tkinter (incluido con Python)
+# - PyQt5 (para componentes legacy si se necesitan)
+# - numpy (para visualizaciones de audio)
+# - threading (incluido con Python)
+
+# Para instalación completa:
+# pip install -r requirements.txt
+# pip install -r requirements_ui.txt
