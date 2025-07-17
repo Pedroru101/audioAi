@@ -19,7 +19,7 @@ from config.config_manager import ConfigManager
 from config.settings import *
 from utils.file_manager import FileManager
 from utils.error_handler import get_error_manager, error_handler
-from utils.auto_updater import AutoUpdater
+from utils.auto_updater import AutoUpdater  # Asume tu versión existente; fusioné con la mía abajo
 from ui.floating_ui import FloatingUI
 from ui.classic_ui import ClassicUI
 from ui.modern_ui import ModernUI
@@ -28,6 +28,15 @@ from ui.history_ui import MeetingHistoryWidget
 from audio.recorder import AudioRecorder
 from audio.transcriber import AudioTranscriber
 from ai.llm_processor import LLMProcessor
+
+# Nuevos imports para Fase 9 (agrega deps: plyer, pynput, requests)
+import requests
+import shutil
+import zipfile
+import platform
+import ctypes
+from plyer import notification
+from pynput import keyboard
 
 # Versión de la aplicación
 APP_VERSION = "1.0.0"
@@ -50,8 +59,8 @@ class MeetingAssistantApp:
         self.transcriber = AudioTranscriber(self.config_manager)
         self.llm_processor = LLMProcessor(self.config_manager)
 
-        # Auto-updater
-        self.updater = AutoUpdater(APP_VERSION)
+        # Auto-updater (fusionado con tu versión existente)
+        self.updater = AutoUpdater(APP_VERSION, self.config_manager, self.file_manager)  # Extendí el init
         self.updater.schedule_update_check(interval_hours=24)
 
         # Interfaces
@@ -87,6 +96,10 @@ class MeetingAssistantApp:
 
         # Verificar actualizaciones al inicio
         QTimer.singleShot(5000, lambda: self.updater.check_for_updates(silent=True))
+
+        # Setup adicionales de Fase 9
+        self.setup_startup()  # Inicio con sistema
+        self.setup_hotkeys()  # Hotkeys globales
 
         self.error_manager.log_info("Aplicación iniciada correctamente")
 
@@ -126,7 +139,7 @@ class MeetingAssistantApp:
         self.settings.setValue('theme', self.theme)
 
     def setup_system_tray(self):
-        """Configura el icono de la bandeja del sistema"""
+        """Configura el icono de la bandeja del sistema (extendido para Fase 9)"""
         if not QSystemTrayIcon.isSystemTrayAvailable():
             return
 
@@ -140,7 +153,7 @@ class MeetingAssistantApp:
         else:
             self.tray_icon = QSystemTrayIcon(QIcon(str(icon_path)))
 
-        # Crear menú
+        # Crear menú (extendido con opciones rápidas)
         tray_menu = QMenu()
 
         # Acciones del menú
@@ -163,6 +176,10 @@ class MeetingAssistantApp:
         config_action = QAction("Configuración", self.tray_icon)
         config_action.triggered.connect(self.open_config_dialog)
         tray_menu.addAction(config_action)
+
+        update_action = QAction("Buscar Actualizaciones", self.tray_icon)
+        update_action.triggered.connect(lambda: self.updater.check_for_updates(silent=False))
+        tray_menu.addAction(update_action)
 
         tray_menu.addSeparator()
 
@@ -234,6 +251,9 @@ class MeetingAssistantApp:
 
             self.error_manager.log_info(f"Grabación iniciada: {self.current_meeting_id}")
 
+            # Notificación nativa (Fase 9)
+            notification.notify(title="Grabación Iniciada", message="Reunión en curso.")
+
         except Exception as e:
             self.error_manager.log_error(f"Error al iniciar grabación: {str(e)}")
             raise
@@ -260,6 +280,9 @@ class MeetingAssistantApp:
                 self.process_recording(audio_file, self.current_meeting_id)
 
             self.error_manager.log_info(f"Grabación detenida: {self.current_meeting_id}")
+
+            # Notificación nativa (Fase 9)
+            notification.notify(title="Grabación Detenida", message="Procesando reunión.")
 
         except Exception as e:
             self.error_manager.log_error(f"Error al detener grabación: {str(e)}")
@@ -365,6 +388,30 @@ class MeetingAssistantApp:
         # Salir
         QApplication.quit()
 
+    # Nuevas funciones de Fase 9 fusionadas
+
+    def minimize_to_tray(self):
+        """Minimizar a tray (oculta ventana principal)"""
+        if self.main_ui:
+            self.main_ui.hide()
+        if self.floating_ui and self.floating_ui != self.main_ui:
+            self.floating_ui.hide()
+        notification.notify(title="Minimizado", message="Meeting Assistant Pro está en la bandeja.")
+
+    def setup_startup(self):
+        """Inicio con el sistema (Fase 9)"""
+        if self.start_with_windows and platform.system() == 'Windows':
+            app_path = sys.executable
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "schtasks", f'/create /tn "MeetingAssistantPro" /tr "{app_path}" /sc onlogon', '', 1)
+        # Agrega lógica para Mac/Linux si es necesario
+
+    def setup_hotkeys(self):
+        """Hotkeys globales (Fase 9, ej: Ctrl+Alt+R para grabar)"""
+        def on_activate():
+            self.start_recording()
+
+        listener = keyboard.GlobalHotKeys({'<ctrl>+<alt>+r': on_activate})
+        listener.start()  # Inicia el listener en background
 
 def main():
     """Función principal"""

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resumen Ejecutivo</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .summary { background: white; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="summary">
+        <h1>Resumen Ejecutivo: {{ data.meeting_id }}</h1>
+        <p><strong>Resumen:</strong> {{ data.analysis.summary }}</p>
+        <p><strong>Temas Principales:</strong> {{ data.analysis.themes | join(', ') }}</p>
+        <img src="{{ data.graph_path }}" alt="Gráfico">
+    </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Análisis Detallado</title>
+    <style>
+        body { font-family: monospace; }
+        details { margin-bottom: 10px; }
+    </style>
+    <script>
+        function toggleDetails() { /* JS para interactividad */ }
+    </script>
+</head>
+<body>
+    <h1>Análisis Detallado: {{ data.meeting_id }}</h1>
+    <details>
+        <summary>Transcripción Completa</summary>
+        <p>{{ data.transcription }}</p>
+    </details>
+    <details>
+        <summary>Análisis</summary>
+        <p>{{ data.analysis.detailed }}</p>
+    </details>
+    <img src="{{ data.graph_path }}" alt="Gráfico">
+</body>
+</html>
