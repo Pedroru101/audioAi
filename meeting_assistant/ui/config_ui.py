@@ -171,9 +171,12 @@ class ConfigUI:
             "action_items_prompt": self.action_items_prompt_text.get("1.0", tk.END).strip(),
             "audio_input_device": self.input_device_combo.get(),
             "audio_output_device": self.output_device_combo.get(),
-            "save_path": self.save_path_var.get()
+            "save_path": self.save_path_var.get(),
+            # NUEVO: Guardar flags de grabación
+            "record_microphone": self.record_microphone_var.get(),
+            "record_system_audio": self.record_system_var.get()
         })
-        self.config_manager.save_config(new_config)
+        self.config_manager.update(new_config)
         messagebox.showinfo("Guardado", "La configuración se ha guardado correctamente.")
         self.close()
 
@@ -218,6 +221,16 @@ class ConfigUI:
             self.output_device_combo.set(self.config.get("audio_output_device", "default"))
         except tk.TclError:
             self.output_device_combo.set("default")
+
+        # --- NUEVO: Opciones de grabación ---
+        options_frame = ttk.LabelFrame(parent, text="Opciones de Grabación", padding="10")
+        options_frame.pack(fill="x", expand=True, pady=5, padx=5)
+        self.record_microphone_var = tk.BooleanVar(value=self.config.get("record_microphone", True))
+        self.record_system_var = tk.BooleanVar(value=self.config.get("record_system_audio", True))
+        mic_checkbox = ttk.Checkbutton(options_frame, text="Grabar Micrófono", variable=self.record_microphone_var)
+        mic_checkbox.pack(anchor="w")
+        sys_checkbox = ttk.Checkbutton(options_frame, text="Grabar Audio del Sistema (Loopback)", variable=self.record_system_var)
+        sys_checkbox.pack(anchor="w")
 
         file_frame = ttk.LabelFrame(parent, text="Gestión de Archivos", padding="10")
         file_frame.pack(fill="x", expand=True, pady=5, padx=5)

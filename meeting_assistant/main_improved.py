@@ -248,8 +248,16 @@ class MeetingAssistantApp:
             # Crear nueva reunión
             self.current_meeting_id = self.file_manager.create_meeting_folder()
 
-            # Iniciar grabación
-            self.audio_recorder.start_recording()
+            # Leer flags de configuración
+            config = self.config_manager.get_config()
+            record_mic = config.get("record_microphone", True)
+            record_sys = config.get("record_system_audio", True)
+            # Actualizar UI de fuentes de audio antes de iniciar grabación
+            if self.main_ui and hasattr(self.main_ui, 'set_audio_sources'):
+                self.main_ui.set_audio_sources(record_mic, record_sys)
+
+            # Iniciar grabación respetando flags
+            self.audio_recorder.start_recording(record_input=record_mic, record_output=record_sys)
             self.is_recording = True
 
             # Actualizar UI
@@ -305,17 +313,25 @@ class MeetingAssistantApp:
             self.update_status("Transcribiendo audio...")
             transcription = self.transcriber.transcribe(audio_file)
 
-            # Procesar con LLM
-            self.update_status("Analizando contenido...")
-            analysis = self.llm_processor.process_transcription(transcription)
+            # Guardar transcripción
+            self.file_manager.save_text_file(meeting_id, "transcripcion.txt", transcription)
 
-            # Guardar resultados
-            self.update_status("Guardando resultados...")
-            self.file_manager.save_meeting_data(meeting_id, {
-                'audio_file': audio_file,
-                'transcription': transcription,
-                'analysis': analysis
-            })
+            # Generar y guardar resumen
+            config = self.config_manager.get_config()
+            if config.get("generate_summary", True):
+                self.update_status("Generando resumen...")
+                summary = self.llm_processor.generate_summary(transcription)
+                self.file_manager.save_text_file(meeting_id, "resumen.md", summary)
+
+            # Generar y guardar propuestas de acción
+            if config.get("generate_actions", True):
+                self.update_status("Generando propuestas de acción...")
+                actions = self.llm_processor.generate_actions(transcription)
+                if not actions.strip():
+                    actions = "No se encontraron acciones en la transcripción."
+                self.file_manager.save_text_file(meeting_id, "acciones.txt", actions)
+
+            self.update_status("Procesamiento completado")
 
             self.update_status("Procesamiento completado")
 

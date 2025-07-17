@@ -532,3 +532,19 @@ class LLMProcessor:
                     }
         
         return None
+
+    def generate_summary(self, transcription: str, **kwargs) -> str:
+        config = self.config_manager.get_config()
+        prompt_template = config.get("summary_prompt", "")
+        prompt = prompt_template + transcription
+        self.logger.info("Generando resumen con prompt personalizado")
+        response_text, metadata = self.provider.process(prompt, **kwargs)
+        return response_text.strip()
+
+    def generate_actions(self, transcription: str, **kwargs) -> str:
+        config = self.config_manager.get_config()
+        prompt_template = config.get("action_items_prompt", "")
+        prompt = prompt_template + transcription
+        self.logger.info("Generando propuestas de acción con prompt personalizado")
+        response_text, metadata = self.provider.process(prompt, **kwargs)
+        return response_text.strip()

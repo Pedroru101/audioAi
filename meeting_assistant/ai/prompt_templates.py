@@ -10,6 +10,15 @@ from datetime import datetime
 
 class PromptTemplates:
     """Gestor de templates de prompts para diferentes casos de uso."""
+
+    @staticmethod
+    def get_prompt(template_name: str, **kwargs) -> str:
+        """Obtiene un prompt formateado dado el nombre del template y el contexto."""
+        try:
+            template = getattr(PromptTemplates, template_name)
+        except AttributeError:
+            raise KeyError(f"Template {template_name} no encontrado")
+        return template.format(**kwargs)
     
     # Template base para análisis completo
     ADVANCED_ANALYSIS_TEMPLATE = """Eres MIA (Meeting Intelligence Assistant), un asistente experto en análisis de reuniones.

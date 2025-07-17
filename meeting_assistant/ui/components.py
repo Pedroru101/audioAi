@@ -28,17 +28,20 @@ class ModernButton(QPushButton):
             self.setStyleSheet(SIDEBAR_BUTTON)
 
 class RecordButton(QPushButton):
-    """Botón especializado para grabación con estados visuales"""
+    """Botón especializado para grabación con estados visuales y fuentes"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.is_recording = False
+        self.mic_active = True
+        self.sys_active = False
         self.setFixedSize(50, 50)
         self._scale_anim = QPropertyAnimation(self, b"size")
         self._scale_anim.setDuration(350)
         self._scale_anim.setEasingCurve(QEasingCurve.OutBack)
         self._scale_anim.setStartValue(self.size())
         self._scale_anim.setEndValue(self.size())
+        self.setup_style()
 
     def animate_scale_in(self):
         self._scale_anim.stop()
@@ -46,19 +49,38 @@ class RecordButton(QPushButton):
         self._scale_anim.setEndValue(self.size())
         self._scale_anim.start()
         self.setup_style()
-        
+
     def setup_style(self):
+        # Cambia el ícono según la fuente activa
+        if self.mic_active and self.sys_active:
+            self.setText("🎤 + 💻")  # Ambos
+        elif self.mic_active:
+            self.setText("🎤")  # Solo mic
+        elif self.sys_active:
+            self.setText("💻")  # Solo sistema
+        else:
+            self.setText("⛔")  # Ninguna fuente
         self.setStyleSheet(RECORD_BUTTON)
-        self.setText("🎤")
-        
+
+    def set_audio_sources(self, mic: bool, sys: bool):
+        self.mic_active = mic
+        self.sys_active = sys
+        self.setup_style()
+
     def set_recording(self, recording):
         self.is_recording = recording
         if recording:
             self.setStyleSheet(RECORD_BUTTON_ACTIVE)
-            self.setText("⏹")
+            if self.mic_active and self.sys_active:
+                self.setText("⏹ 🎤+💻")
+            elif self.mic_active:
+                self.setText("⏹ 🎤")
+            elif self.sys_active:
+                self.setText("⏹ 💻")
+            else:
+                self.setText("⏹")
         else:
-            self.setStyleSheet(RECORD_BUTTON)
-            self.setText("🎤")
+            self.setup_style()
 
 class TimeDisplay(QLabel):
     """Display de tiempo de grabación"""

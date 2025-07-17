@@ -34,6 +34,10 @@ class ModernUI(ctk.CTk):
         self.recording_time = 0
         self.timer_thread = None
 
+        # Estado de fuentes activas (por defecto: micrófono activo, sistema inactivo)
+        self.mic_active = True
+        self.sys_active = False
+
         # Configuración de ventana
         self.title("Meeting Assistant Pro")
         self.geometry("1000x700")
@@ -216,8 +220,8 @@ class ModernUI(ctk.CTk):
         self.controls_frame = ctk.CTkFrame(self.recording_frame)
         self.controls_frame.grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
-        # Botón de grabación principal
-        self.record_button = ctk.CTkButton(
+        # Botón de grabación principal con indicadores de fuente
+        self.record_button = CTkRecordButton(
             self.controls_frame,
             text="🎤 Iniciar Grabación",
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -225,10 +229,19 @@ class ModernUI(ctk.CTk):
             height=50,
             corner_radius=25,
             fg_color="#4CAF50",
-            hover_color="#45a049",
-            command=self.toggle_recording
+            hover_color="#45a049"
         )
         self.record_button.grid(row=0, column=0, padx=5)
+
+        # Eventos de ratón personalizados
+        self._single_click_after_id = None
+        self.record_button.bind('<Button-1>', self._on_record_click)
+        self.record_button.bind('<Double-Button-1>', self._on_record_double_click)
+        self.record_button.bind('<Button-3>', self._on_record_right_click)
+
+        # Estado de fuentes activas (por defecto: micrófono activo, sistema inactivo)
+        self.mic_active = True
+        self.sys_active = False
 
         # Timer
         self.timer_label = ctk.CTkLabel(
@@ -359,24 +372,44 @@ class ModernUI(ctk.CTk):
         )
         self.fab_button.pack()
 
-    def toggle_recording(self):
-        """Alterna el estado de grabación"""
+    def _on_record_click(self, event):
+        """Gestión de click izquierdo con debounce para distinguir single vs double click"""
+        if self._single_click_after_id:
+            self.after_cancel(self._single_click_after_id)
+            self._single_click_after_id = None
+        # Espera 200 ms para ver si es doble click
+        self._single_click_after_id = self.after(200, lambda: self._handle_single_click())
+
+    def _handle_single_click(self):
+        self._single_click_after_id = None
         if not self.is_recording:
             self.start_recording()
-        else:
-            self.stop_recording()
+        elif hasattr(self, 'is_paused') and self.is_paused:
+            self.resume_recording()
+        # Si ya está grabando y no está en pausa, no hace nada
+
+    def _on_record_double_click(self, event):
+        """Doble click izquierdo: pausar grabación"""
+        if self._single_click_after_id:
+            self.after_cancel(self._single_click_after_id)
+            self._single_click_after_id = None
+        if self.is_recording and (not hasattr(self, 'is_paused') or not self.is_paused):
+            self.pause_recording()
+
+    def _on_record_right_click(self, event):
+        """Click derecho: mostrar menú para terminar grabación"""
+        menu = tk.Menu(self, tearoff=0)
+        menu.add_command(label="Terminar grabación", command=self.stop_recording)
+        menu.tk_popup(event.x_root, event.y_root)
 
     def start_recording(self):
         """Inicia la grabación"""
         self.is_recording = True
+        self.is_paused = False
         self.recording_time = 0
 
         # Actualizar UI
-        self.record_button.configure(
-            text="⏹ Detener Grabación",
-            fg_color="#f44336",
-            hover_color="#d32f2f"
-        )
+        self.record_button.set_recording(True)
         self.status_text.set("Grabando...")
         self.status_indicator.configure(text_color="#f44336")
 
@@ -391,16 +424,32 @@ class ModernUI(ctk.CTk):
         if self.on_record:
             self.on_record()
 
+    def pause_recording(self):
+        """Pausa la grabación"""
+        if not self.is_recording or (hasattr(self, 'is_paused') and self.is_paused):
+            return
+        self.is_paused = True
+        self.record_button.configure(text="⏸️ Pausada", fg_color="#FF9800", hover_color="#FFA726")
+        self.status_text.set("Grabación pausada")
+        self.status_indicator.configure(text_color="#FFA726")
+        # Aquí podrías pausar el timer real y la animación si lo deseas
+
+    def resume_recording(self):
+        """Reanuda la grabación pausada"""
+        if not self.is_recording or not (hasattr(self, 'is_paused') and self.is_paused):
+            return
+        self.is_paused = False
+        self.record_button.set_recording(True)
+        self.status_text.set("Grabando...")
+        self.status_indicator.configure(text_color="#f44336")
+        # Aquí podrías reanudar el timer real y la animación si lo deseas
+
     def stop_recording(self):
         """Detiene la grabación"""
         self.is_recording = False
 
         # Actualizar UI
-        self.record_button.configure(
-            text="🎤 Iniciar Grabación",
-            fg_color="#4CAF50",
-            hover_color="#45a049"
-        )
+        self.record_button.set_recording(False)
         self.status_text.set("Procesando...")
         self.status_indicator.configure(text_color="#FF9800")
 
@@ -506,6 +555,13 @@ class ModernUI(ctk.CTk):
         )
         checkbox.pack(side="left", padx=10, pady=5)
 
+    def set_audio_sources(self, mic: bool, sys: bool):
+        """Actualiza el estado visual de las fuentes de audio en el botón de grabación."""
+        self.mic_active = mic
+        self.sys_active = sys
+        if hasattr(self, 'record_button'):
+            self.record_button.set_audio_sources(mic, sys)
+
     def run(self):
         """Inicia la aplicación"""
         self.mainloop()
@@ -590,6 +646,50 @@ class FloatingWidget(ctk.CTkToplevel):
         if self.on_record_toggle:
             self.on_record_toggle()
 
+
+# ---
+# Botón de grabación con indicadores de fuente para CustomTkinter
+# ---
+
+class CTkRecordButton(ctk.CTkButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_recording = False
+        self.mic_active = True
+        self.sys_active = False
+        self.update_style()
+
+    def set_audio_sources(self, mic: bool, sys: bool):
+        self.mic_active = mic
+        self.sys_active = sys
+        self.update_style()
+
+    def set_recording(self, recording: bool):
+        self.is_recording = recording
+        self.update_style()
+
+    def update_style(self):
+        # Decide text and color based on state
+        if self.is_recording:
+            if self.mic_active and self.sys_active:
+                text = "⏹ 🎤+💻"
+            elif self.mic_active:
+                text = "⏹ 🎤"
+            elif self.sys_active:
+                text = "⏹ 💻"
+            else:
+                text = "⏹"
+            self.configure(text=text, fg_color="#f44336", hover_color="#d32f2f")
+        else:
+            if self.mic_active and self.sys_active:
+                text = "🎤+💻 Iniciar Grabación"
+            elif self.mic_active:
+                text = "🎤 Iniciar Grabación"
+            elif self.sys_active:
+                text = "💻 Iniciar Grabación"
+            else:
+                text = "⛔ Sin fuentes"
+            self.configure(text=text, fg_color="#4CAF50", hover_color="#45a049")
 
 if __name__ == "__main__":
     # Test
