@@ -11,14 +11,19 @@ from datetime import datetime
 import json
 from PIL import Image, ImageTk
 import os
+import logging
 
 # Configuración de tema
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# Configuración de logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 class ModernUI(ctk.CTk):
     def __init__(self, on_record=None, on_stop=None, on_config=None, on_history=None):
         super().__init__()
+        logging.debug("Inicializando ModernUI")  # Log de diagnóstico
 
         self.on_record = on_record
         self.on_stop = on_stop
@@ -33,6 +38,7 @@ class ModernUI(ctk.CTk):
         self.title("Meeting Assistant Pro")
         self.geometry("1000x700")
         self.minsize(800, 600)
+        logging.debug("Configuración de ventana completada")  # Log de diagnóstico
 
         # Variables de estado
         self.current_transcription = tk.StringVar()

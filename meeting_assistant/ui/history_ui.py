@@ -74,7 +74,7 @@ class MeetingHistoryWidget(QWidget):
         header_layout.addWidget(self.refresh_btn)
         
         self.analytics_btn = ModernButton("📈 Analytics", button_type="primary")
-        self.analytics_btn.clicked.connect(self.show_analytics)
+        self.analytics_btn.clicked.connect(self.load_analytics)
         header_layout.addWidget(self.analytics_btn)
         
         main_layout.addLayout(header_layout)
@@ -162,6 +162,15 @@ class MeetingHistoryWidget(QWidget):
         
         return filter_widget
         
+    def clear_filters(self):
+        """Limpia todos los filtros y recarga las reuniones."""
+        self.search_input.clear()
+        self.date_from.setDate(QDate.currentDate().addDays(-30))
+        self.date_to.setDate(QDate.currentDate())
+        self.status_filter.setCurrentIndex(0) # "Todos"
+        self.duration_filter.setValue(0)
+        self.apply_filters()
+        
     def create_meetings_table(self) -> QWidget:
         """Crea la tabla de reuniones"""
         table_widget = QWidget()
@@ -206,6 +215,14 @@ class MeetingHistoryWidget(QWidget):
         self.select_all_cb.stateChanged.connect(self.toggle_select_all)
         controls_layout.addWidget(self.select_all_cb)
         
+    def toggle_select_all(self, state):
+        """Alterna la selección de todos los checkboxes en la tabla de reuniones."""
+        is_checked = (state == Qt.Checked)
+        for row in range(self.meetings_table.rowCount()):
+            checkbox = self.meetings_table.cellWidget(row, 0)
+            if isinstance(checkbox, QCheckBox):
+                checkbox.setChecked(is_checked)
+        
         controls_layout.addStretch()
         
         self.export_selected_btn = ModernButton("📤 Exportar seleccionados", button_type="secondary")
@@ -219,6 +236,154 @@ class MeetingHistoryWidget(QWidget):
         layout.addLayout(controls_layout)
         
         return table_widget
+        
+    def export_selected_meetings(self):
+        """Exporta las reuniones seleccionadas."""
+        selected_paths = []
+        for row in range(self.meetings_table.rowCount()):
+            checkbox = self.meetings_table.cellWidget(row, 0)
+            if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
+                title_item = self.meetings_table.item(row, 1)
+                if title_item:
+                    selected_paths.append(title_item.data(Qt.UserRole))
+        
+        if not selected_paths:
+            QMessageBox.warning(self, "Exportar", "No hay reuniones seleccionadas para exportar.")
+            return
+
+        # Abrir diálogo para seleccionar formato y destino
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Exportar Reuniones",
+            f"selected_meetings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+            "ZIP Files (*.zip);;Markdown Files (*.md)"
+        )
+
+        if file_path:
+            export_format = Path(file_path).suffix[1:] # Obtener extensión sin el punto
+            if export_format == "zip":
+                # Exportar como ZIP (manejar múltiples reuniones)
+                # Esto requeriría una lógica más compleja en FileManager para ZIPs múltiples
+                QMessageBox.information(self, "Exportar", "La exportación múltiple a ZIP está en desarrollo.")
+            elif export_format == "md":
+                # Exportar cada reunión a un archivo Markdown separado
+                for path in selected_paths:
+                    self.file_manager.export_meeting(path, export_format="markdown")
+                QMessageBox.information(self, "Exportar", f"Reuniones exportadas a Markdown en {Path(file_path).parent}.")
+            else:
+                QMessageBox.warning(self, "Exportar", "Formato de exportación no soportado.")
+
+    def delete_selected_meetings(self):
+        """Elimina las reuniones seleccionadas."""
+        selected_paths = []
+        for row in range(self.meetings_table.rowCount()):
+            checkbox = self.meetings_table.cellWidget(row, 0)
+            if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
+                title_item = self.meetings_table.item(row, 1)
+                if title_item:
+                    selected_paths.append(title_item.data(Qt.UserRole))
+
+        if not selected_paths:
+            QMessageBox.warning(self, "Eliminar", "No hay reuniones seleccionadas para eliminar.")
+            return
+
+        reply = QMessageBox.question(self, "Confirmar Eliminación",
+                                     f"¿Estás seguro de que deseas eliminar {len(selected_paths)} reunión(es) seleccionada(s)? Esta acción no se puede deshacer.",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            deleted_count = 0
+            for path in selected_paths:
+                if self.file_manager.delete_meeting(path, confirm=True):
+                    deleted_count += 1
+            QMessageBox.information(self, "Eliminar", f"Se eliminaron {deleted_count} reunión(es).")
+            self.load_meetings() # Recargar la tabla después de eliminar
+        
+    def show_context_menu(self, pos):
+        """Muestra el menú contextual para la tabla de reuniones."""
+        menu = QMenu()
+        
+        # Acciones del menú
+        view_action = menu.addAction("Ver Detalles")
+        export_action = menu.addAction("Exportar Reunión")
+        delete_action = menu.addAction("Eliminar Reunión")
+        
+        action = menu.exec_(self.meetings_table.mapToGlobal(pos))
+        
+        if action == view_action:
+            self.on_meeting_selected() # Reutiliza la lógica de selección
+        elif action == export_action:
+            self.export_current_meeting()
+        elif action == delete_action:
+            self.delete_selected_meetings() # Reutiliza la lógica de eliminación
+
+    def on_meeting_selected(self):
+        """Maneja la selección de una reunión en la tabla."""
+        selected_items = self.meetings_table.selectedItems()
+        if not selected_items:
+            self.selected_meeting_path = None
+            self.clear_details_panel()
+            return
+
+        # Obtener la ruta de la reunión del primer elemento seleccionado (columna de título)
+        title_item = self.meetings_table.item(selected_items[0].row(), 1)
+        if title_item:
+            self.selected_meeting_path = title_item.data(Qt.UserRole)
+            self.load_meeting_details(self.selected_meeting_path)
+
+    def clear_details_panel(self):
+        """Limpia el panel de detalles."""
+        self.summary_text.clear()
+        self.actions_table.setRowCount(0)
+        self.transcript_text.clear()
+        self.transcript_search.clear()
+        self.search_count_label.setText("0 coincidencias")
+        for label in self.metrics_labels.values():
+            label.setText("-")
+
+    def load_meeting_details(self, meeting_path: str):
+        """Carga y muestra los detalles de la reunión seleccionada."""
+        if not meeting_path:
+            return
+
+        meeting_data = self.file_manager.get_meeting_data(meeting_path)
+        if not meeting_data:
+            QMessageBox.warning(self, "Error", "No se pudieron cargar los detalles de la reunión.")
+            self.clear_details_panel()
+            return
+
+        # Resumen
+        summary = meeting_data.get('summary', 'No hay resumen disponible.')
+        self.summary_text.setText(summary)
+
+        # Acciones
+        actions = meeting_data.get('actions', [])
+        self.actions_table.setRowCount(0)
+        for row, action in enumerate(actions):
+            self.actions_table.insertRow(row)
+            checkbox = QCheckBox()
+            checkbox.setChecked(action.get('completed', False))
+            self.actions_table.setCellWidget(row, 0, checkbox)
+            self.actions_table.setItem(row, 1, QTableWidgetItem(action.get('action', '')))
+            self.actions_table.setItem(row, 2, QTableWidgetItem(action.get('responsible', '')))
+            self.actions_table.setItem(row, 3, QTableWidgetItem(action.get('deadline', '')))
+            self.actions_table.setItem(row, 4, QTableWidgetItem(action.get('priority', '')))
+
+        # Transcripción
+        transcription = meeting_data.get('transcription', 'No hay transcripción disponible.')
+        self.transcript_text.setText(transcription)
+
+        # Métricas
+        analytics = meeting_data.get('analytics', {})
+        if analytics:
+            self.metrics_labels['duration'].setText(analytics.get('basic_metrics', {}).get('estimated_duration_formatted', '-'))
+            self.metrics_labels['participants'].setText(str(analytics.get('participation_metrics', {}).get('identified_speakers', '-')))
+            self.metrics_labels['topics'].setText(", ".join([t[0] for t in analytics.get('content_analysis', {}).get('top_words', [])[:3]]) or '-')
+            self.metrics_labels['actions'].setText(str(len(actions)))
+            self.metrics_labels['sentiment'].setText(analytics.get('sentiment_analysis', {}).get('dominant', '-'))
+            self.metrics_labels['efficiency'].setText(f"{analytics.get('efficiency_metrics', {}).get('efficiency_score', 0):.2f}")
+
+        # Emitir señal de selección de reunión
+        self.meeting_selected.emit(meeting_path)
         
     def create_details_panel(self) -> QWidget:
         """Crea el panel de detalles"""
@@ -265,6 +430,58 @@ class MeetingHistoryWidget(QWidget):
         layout.addLayout(actions_layout)
         
         return details_widget
+        
+    def export_current_meeting(self):
+        """Exporta la reunión actualmente seleccionada."""
+        if not self.selected_meeting_path:
+            QMessageBox.warning(self, "Exportar", "Selecciona una reunión para exportar.")
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Exportar Reunión",
+            f"{Path(self.selected_meeting_path).name}_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+            "ZIP Files (*.zip);;Markdown Files (*.md)"
+        )
+
+        if file_path:
+            export_format = Path(file_path).suffix[1:] # Obtener extensión sin el punto
+            try:
+                self.file_manager.export_meeting(self.selected_meeting_path, export_format=export_format)
+                QMessageBox.information(self, "Exportar", f"Reunión exportada exitosamente a:\n{file_path}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error de Exportación", f"Error al exportar la reunión: {e}")
+        
+    def reprocess_meeting(self):
+        """Reprocesa la reunión seleccionada."""
+        if not self.selected_meeting_path:
+            QMessageBox.warning(self, "Reprocesar", "Selecciona una reunión para reprocesar.")
+            return
+
+        reply = QMessageBox.question(self, "Confirmar Reprocesamiento",
+                                     "¿Estás seguro de que deseas reprocesar esta reunión? Esto puede sobrescribir los análisis existentes.",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            try:
+                # Aquí se llamaría a la lógica de reprocesamiento en el backend
+                # Por ahora, solo un mensaje de confirmación
+                QMessageBox.information(self, "Reprocesar", "Reprocesamiento iniciado (funcionalidad en desarrollo).")
+                # self.file_manager.reprocess_meeting(self.selected_meeting_path)
+                self.load_meeting_details(self.selected_meeting_path) # Recargar para reflejar cambios
+            except Exception as e:
+                QMessageBox.critical(self, "Error de Reprocesamiento", f"Error al reprocesar la reunión: {e}")
+        
+    def open_meeting_folder(self):
+        """Abre la carpeta de la reunión seleccionada en el explorador de archivos."""
+        if not self.selected_meeting_path:
+            QMessageBox.warning(self, "Abrir Carpeta", "Selecciona una reunión para abrir su carpeta.")
+            return
+        
+        try:
+            # Abrir la carpeta en el explorador de archivos del sistema
+            os.startfile(self.selected_meeting_path)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo abrir la carpeta:\n{e}")
         
     def create_summary_tab(self) -> QWidget:
         """Crea la pestaña de resumen"""
@@ -323,6 +540,72 @@ class MeetingHistoryWidget(QWidget):
         
         return widget
         
+    def export_actions_csv(self):
+        """Exporta las acciones de la reunión actual a un archivo CSV."""
+        if not self.selected_meeting_path:
+            QMessageBox.warning(self, "Exportar Acciones", "Selecciona una reunión para exportar sus acciones.")
+            return
+
+        meeting_data = self.file_manager.get_meeting_data(self.selected_meeting_path)
+        actions = meeting_data.get('actions', [])
+
+        if not actions:
+            QMessageBox.information(self, "Exportar Acciones", "La reunión seleccionada no tiene acciones para exportar.")
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Guardar Acciones como CSV",
+            f"acciones_{Path(self.selected_meeting_path).name}.csv",
+            "CSV Files (*.csv)"
+        )
+
+        if file_path:
+            try:
+                # Asegurarse de que el directorio existe
+                Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+                
+                # Escribir CSV
+                with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                    fieldnames = ["Acción", "Responsable", "Deadline", "Prioridad", "Completada"]
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+                    writer.writeheader()
+                    for action in actions:
+                        writer.writerow({
+                            "Acción": action.get('action', ''),
+                            "Responsable": action.get('responsible', ''),
+                            "Deadline": action.get('deadline', ''),
+                            "Prioridad": action.get('priority', ''),
+                            "Completada": "Sí" if action.get('completed', False) else "No"
+                        })
+                QMessageBox.information(self, "Exportar Acciones", f"Acciones exportadas exitosamente a:\n{file_path}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error de Exportación", f"Error al exportar acciones: {e}")
+        
+    def mark_actions_complete(self):
+        """Marca las acciones seleccionadas como completadas."""
+        if not self.selected_meeting_path:
+            QMessageBox.warning(self, "Acciones", "Selecciona una reunión para marcar acciones.")
+            return
+
+        meeting_data = self.file_manager.get_meeting_data(self.selected_meeting_path)
+        if not meeting_data or 'actions' not in meeting_data:
+            return
+
+        updated_actions = []
+        for row in range(self.actions_table.rowCount()):
+            checkbox = self.actions_table.cellWidget(row, 0)
+            action_item = meeting_data['actions'][row]
+            if isinstance(checkbox, QCheckBox):
+                action_item['completed'] = checkbox.isChecked()
+            updated_actions.append(action_item)
+
+        # Actualizar los datos de la reunión en el file_manager
+        meeting_data['actions'] = updated_actions
+        self.file_manager.save_json_file(self.selected_meeting_path, "acciones.json", updated_actions)
+        QMessageBox.information(self, "Acciones", "Acciones actualizadas.")
+        self.load_meeting_details(self.selected_meeting_path) # Recargar para reflejar cambios
+        
     def create_transcript_tab(self) -> QWidget:
         """Crea la pestaña de transcripción"""
         widget = QWidget()
@@ -356,11 +639,42 @@ class MeetingHistoryWidget(QWidget):
                 font-size: 13px;
                 line-height: 1.5;
             }}
-        """)
+        """
+        )
         
         layout.addWidget(self.transcript_text)
         
         return widget
+        
+    def search_in_transcript(self):
+        """Busca texto en la transcripción y resalta las coincidencias."""
+        search_text = self.transcript_search.text()
+        transcript_content = self.transcript_text.toPlainText()
+        
+        # Limpiar formato anterior
+        cursor = self.transcript_text.textCursor()
+        cursor.beginEdit()
+        cursor.select(QTextCursor.Document)
+        cursor.setCharFormat(QTextCharFormat()) # Restablecer formato
+        cursor.clearSelection()
+        cursor.endEdit()
+
+        if not search_text:
+            self.search_count_label.setText("0 coincidencias")
+            return
+
+        format = QTextCharFormat()
+        format.setBackground(QColor("yellow"))
+        format.setForeground(QColor("black"))
+
+        count = 0
+        cursor = self.transcript_text.document().find(search_text, QTextDocument.FindWholeWords)
+        while not cursor.isNull():
+            cursor.mergeCharFormat(format)
+            count += 1
+            cursor = self.transcript_text.document().find(search_text, cursor.position(), QTextDocument.FindWholeWords)
+        
+        self.search_count_label.setText(f"{count} coincidencias")
         
     def create_metrics_tab(self) -> QWidget:
         """Crea la pestaña de métricas"""
@@ -435,6 +749,14 @@ class MeetingHistoryWidget(QWidget):
         self.update_status_bar()
         
         return status_widget
+        
+    def update_status_bar(self):
+        """Actualiza la información de la barra de estado."""
+        storage_info = self.file_manager.get_storage_info()
+        total_meetings = len(self.current_meetings)
+
+        self.storage_label.setText(f"Almacenamiento: {storage_info['total_size_gb']:.2f} GB / {storage_info['free_space_gb']:.2f} GB libres")
+        self.meeting_count_label.setText(f"Reuniones: {total_meetings}")
         
     def load_meetings(self):
         """Carga la lista de reuniones desde el FileManager"""

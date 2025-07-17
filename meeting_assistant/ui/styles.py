@@ -225,6 +225,61 @@ TOOLTIP_STYLE = f"""
     }}
 """
 
+# Estilo para campos de entrada de texto
+INPUT_STYLE = f"""
+    QLineEdit,
+    QTextEdit,
+    QComboBox,
+    QSpinBox,
+    QDateEdit {{
+        background-color: {COLORS['secondary_bg']};
+        color: {COLORS['text_primary']};
+        border: 1px solid {COLORS['border']};
+        border-radius: 5px;
+        padding: 8px;
+        font-family: '{FONTS['primary']}';
+        font-size: 13px;
+    }}
+    QLineEdit:focus,
+    QTextEdit:focus,
+    QComboBox:focus,
+    QSpinBox:focus,
+    QDateEdit:focus {{
+        border: 1px solid {COLORS['active_bg']};
+    }}
+"""
+
+# Estilo para QComboBox
+COMBO_STYLE = f"""
+    QComboBox {{
+        background-color: {COLORS['secondary_bg']};
+        color: {COLORS['text_primary']};
+        border: 1px solid {COLORS['border']};
+        border-radius: 5px;
+        padding: 5px;
+        font-family: '{FONTS['primary']}';
+        font-size: 12px;
+    }}
+    QComboBox::drop-down {{
+        border: 0px;
+    }}
+    QComboBox::down-arrow {{
+        image: url(assets/icons/arrow_down.png); /* Asegúrate de tener este icono */
+        width: 10px;
+        height: 10px;
+    }}
+    QComboBox:on {{
+        border: 1px solid {COLORS['active_bg']};
+    }}
+    QComboBox QAbstractItemView {{
+        background-color: {COLORS['secondary_bg']};
+        color: {COLORS['text_primary']};
+        selection-background-color: {COLORS['active_bg']};
+        selection-color: white;
+        border: 1px solid {COLORS['border']};
+    }}
+"""
+
 # Función para aplicar sombra a ventanas
 def apply_window_shadow(widget):
     """Aplica sombra elegante a una ventana"""

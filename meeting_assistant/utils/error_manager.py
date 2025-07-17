@@ -1,5 +1,6 @@
 # utils/error_manager.py
 import logging
+import logging.handlers  # Import necesario para RotatingFileHandler
 import traceback
 import sys
 from datetime import datetime
@@ -39,48 +40,84 @@ class ErrorManager:
         sys.excepthook = self._handle_uncaught_exception
 
     def _setup_logging(self):
-        """Configura el sistema de logging."""
+        """Configura el sistema de logging de forma segura."""
         try:
-            # Obtener configuración si está disponible
+            # Configuración básica como fallback
+            logging.basicConfig(
+                level=logging.INFO,
+                format='%(levelname)s - %(name)s - %(message)s'
+            )
+            
+            # Configuración avanzada si es posible
             if self.config_manager:
                 log_dir = Path(self.config_manager.get('save_path', '~')) / 'logs'
-            else:
-                log_dir = Path.home() / '.meeting_assistant' / 'logs'
-            
-            log_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Archivo de log principal
-            log_file = log_dir / f"meeting_assistant_{datetime.now().strftime('%Y%m%d')}.log"
-            
-            # Configurar handler de archivo
-            file_handler = logging.handlers.RotatingFileHandler(
-                log_file,
-                maxBytes=10*1024*1024,  # 10MB
-                backupCount=5,
-                encoding='utf-8'
-            )
-            
-            # Formato detallado para archivo
-            file_formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-            )
-            file_handler.setFormatter(file_formatter)
-            
-            # Configurar handler de consola
-            console_handler = logging.StreamHandler()
-            console_formatter = logging.Formatter(
-                '%(levelname)s - %(name)s - %(message)s'
-            )
-            console_handler.setFormatter(console_formatter)
-            
-            # Configurar logger root
-            root_logger = logging.getLogger()
-            root_logger.setLevel(logging.INFO)
-            root_logger.addHandler(file_handler)
-            root_logger.addHandler(console_handler)
-            
+                log_dir.mkdir(parents=True, exist_ok=True)
+                
+                log_file = log_dir / f"meeting_assistant_{datetime.now().strftime('%Y%m%d')}.log"
+                
+                # Configurar handler de archivo con rotación
+                file_handler = logging.handlers.RotatingFileHandler(
+                    log_file,
+                    maxBytes=10*1024*1024,  # 10MB
+                    backupCount=5,
+                    encoding='utf-8'
+                )
+                file_handler.setFormatter(logging.Formatter(
+                    '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+                ))
+                
+                # Configurar logger root
+                root_logger = logging.getLogger()
+                root_logger.setLevel(logging.INFO)
+                root_logger.addHandler(file_handler)
+                
         except Exception as e:
             print(f"Error configurando logging: {e}")
+            # Fallback a configuración básica
+            logging.basicConfig(level=logging.INFO)
+        
+        # Configuración de logging
+        # try:
+        #     # Obtener configuración si está disponible
+        #     if self.config_manager:
+        #         log_dir = Path(self.config_manager.get('save_path', '~')) / 'logs'
+        #     else:
+        #         log_dir = Path.home() / '.meeting_assistant' / 'logs'
+        #     
+        #     log_dir.mkdir(parents=True, exist_ok=True)
+        #     
+        #     # Archivo de log principal
+        #     log_file = log_dir / f"meeting_assistant_{datetime.now().strftime('%Y%m%d')}.log"
+        #     
+        #     # Configurar handler de archivo
+        #     file_handler = logging.handlers.RotatingFileHandler(
+        #         log_file,
+        #         maxBytes=10*1024*1024,  # 10MB
+        #         backupCount=5,
+        #         encoding='utf-8'
+        #     )
+        #     
+        #     # Formato detallado para archivo
+        #     file_formatter = logging.Formatter(
+        #         '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+        #     )
+        #     file_handler.setFormatter(file_formatter)
+        #     
+        #     # Configurar handler de consola
+        #     console_handler = logging.StreamHandler()
+        #     console_formatter = logging.Formatter(
+        #         '%(levelname)s - %(name)s - %(message)s'
+        #     )
+        #     console_handler.setFormatter(console_formatter)
+        #     
+        #     # Configurar logger root
+        #     root_logger = logging.getLogger()
+        #     root_logger.setLevel(logging.INFO)
+        #     root_logger.addHandler(file_handler)
+        #     root_logger.addHandler(console_handler)
+        #     
+        # except Exception as e:
+        #     print(f"Error configurando logging: {e}")
 
     def _handle_uncaught_exception(self, exc_type, exc_value, exc_traceback):
         """Maneja excepciones no capturadas."""
@@ -355,6 +392,7 @@ class ErrorManager:
                         )
                         
                         # Esperar antes de reintentar
+                        import time
                         time.sleep(current_delay)
                         current_delay *= backoff
                 

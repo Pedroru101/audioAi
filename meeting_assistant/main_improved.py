@@ -20,7 +20,7 @@ from config.settings import *
 from utils.file_manager import FileManager
 from utils.error_manager import ErrorManager
 from utils.auto_updater import AutoUpdater  # Asume tu versión existente; fusioné con la mía abajo
-# from ui.floating_ui import FloatingUI
+from ui.floating_ui import FloatingUI
 from ui.classic_ui import ClassicUI
 from ui.modern_ui import ModernUI
 # from ui.config_ui import ConfigUI
@@ -164,7 +164,7 @@ class MeetingAssistantApp:
         tray_menu.addSeparator()
 
         record_action = QAction("Nueva Grabación", self.tray_icon)
-        record_action.triggered.connect(self.start_recording)
+        record_action.triggered.connect(lambda: self.start_recording())
         tray_menu.addAction(record_action)
 
         history_action = QAction("Historial", self.tray_icon)
@@ -203,8 +203,8 @@ class MeetingAssistantApp:
 
     def initialize_ui(self):
         """Inicializa la interfaz de usuario"""
-        # Siempre crear la UI flotante
-        # self.floating_ui = FloatingUI(self)
+        # Crear UI flotante
+        self.floating_ui = FloatingUI(self)
 
         # Crear UI principal según preferencia
         if self.preferred_ui == 'classic':
@@ -215,10 +215,8 @@ class MeetingAssistantApp:
             # Por defecto usar la flotante como principal
             self.main_ui = self.floating_ui
 
-        # Mostrar UI
-        # if self.preferred_ui == 'floating':
-        #     self.floating_ui.show()
-        
+        # Mostrar UI principal
+        self.main_ui.show()
 
     def show_main_window(self):
         """Muestra la ventana principal"""
@@ -428,6 +426,7 @@ def main():
 
     # Crear ventana principal
     meeting_assistant = MeetingAssistantApp()
+    meeting_assistant.show_main_window()  # Asegurar que la ventana principal se muestre
 
     # Ejecutar
     sys.exit(app.exec_())

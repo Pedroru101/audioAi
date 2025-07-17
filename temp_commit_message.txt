@@ -1,0 +1,11 @@
+feat: Refactorización y corrección de errores para ejecución en modo desarrollo
+
+- Se refactorizaron scripts generadores de módulos (file_manager, error_manager, recorder, transcriber, ai/__init__, llm_processor, analytics_engine) a módulos Python estándar.
+- Se corrigieron errores de importación (relativas y absolutas) en main_improved.py y history_ui.py.
+- Se eliminaron sentencias print con caracteres Unicode problemáticos que causaban UnicodeEncodeError.
+- Se ajustaron los argumentos de inicialización para AudioRecorder y AutoUpdater.
+- Se deshabilitaron temporalmente los componentes de UI basados en Tkinter (FloatingUI, ConfigUI) para evitar conflictos con PyQt.
+- Se resolvieron errores de sintaxis y NameError en history_ui.py y main_improved.py.
+- Se instalaron dependencias faltantes: soundfile y pynput.
+
+Esta versión permite la ejecución en modo desarrollo, aunque requiere que el servidor Ollama esté activo para la funcionalidad completa de LLM.
