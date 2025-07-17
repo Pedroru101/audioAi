@@ -1,5 +1,4 @@
-# Crear el archivo settings.py mejorado
-improved_settings = '''# config/settings.py (Versión mejorada)
+# config/settings.py (Versión mejorada)
 import os
 from pathlib import Path
 
@@ -383,20 +382,3 @@ LOGGING_CONFIG = {
         "handlers": ["file", "console"]
     }
 }
-'''
-
-# Guardar el archivo
-with open('settings_improved.py', 'w', encoding='utf-8') as f:
-    f.write(improved_settings)
-
-print("✅ settings.py mejorado creado exitosamente")
-print("\nCaracterísticas añadidas:")
-print("- ✓ Configuración completa y estructurada")
-print("- ✓ Prompts avanzados para análisis integral")
-print("- ✓ Soporte para múltiples proveedores de API")
-print("- ✓ Configuración de integraciones (Email, Slack, Calendar)")
-print("- ✓ Atajos de teclado personalizables")
-print("- ✓ Templates de exportación")
-print("- ✓ Características experimentales")
-print("- ✓ Validadores de configuración")
-print("- ✓ Configuración de logging")

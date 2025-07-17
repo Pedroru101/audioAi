@@ -1,5 +1,4 @@
-# Crear el archivo recorder.py mejorado
-improved_recorder = '''# audio/recorder.py (Versión mejorada)
+# audio/recorder.py (Versión mejorada)
 
 import sounddevice as sd
 import numpy as np
@@ -288,18 +287,3 @@ class AudioRecorder:
             'input_active': self.input_stream is not None if self.is_recording else False,
             'output_active': self.output_stream is not None if self.is_recording else False
         }
-'''
-
-# Guardar el archivo
-with open('recorder_improved.py', 'w', encoding='utf-8') as f:
-    f.write(improved_recorder)
-
-print("✅ recorder.py mejorado creado exitosamente")
-print("\nCaracterísticas añadidas:")
-print("- ✓ Captura simultánea de entrada (micrófono) y salida (sistema)")
-print("- ✓ Listado de dispositivos de audio disponibles")
-print("- ✓ Procesamiento en tiempo real con colas")
-print("- ✓ Mezcla automática de streams de audio")
-print("- ✓ Integración con sistema de notificaciones")
-print("- ✓ Mejor manejo de errores y estados")
-print("- ✓ Método para obtener estado de grabación")

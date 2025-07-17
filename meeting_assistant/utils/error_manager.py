@@ -1,5 +1,4 @@
-# Crear error_manager.py
-error_manager_code = '''# utils/error_manager.py
+# utils/error_manager.py
 import logging
 import traceback
 import sys
@@ -402,7 +401,6 @@ def safe_execute(func: Callable, default_return=None, error_message: str = None)
             logging.getLogger(__name__).error(f"Error ejecutando {func.__name__}: {e}")
         return default_return
 
-
 def format_exception(exc_info=None) -> str:
     """Formatea una excepción para mostrar al usuario."""
     if exc_info:
@@ -412,20 +410,3 @@ def format_exception(exc_info=None) -> str:
             return f"{type(exc_info).__name__}: {str(exc_info)}"
     else:
         return "Error desconocido"
-'''
-
-# Guardar el archivo
-with open('error_manager.py', 'w', encoding='utf-8') as f:
-    f.write(error_manager_code)
-
-print("✅ error_manager.py creado exitosamente")
-print("\nCaracterísticas implementadas:")
-print("- ✓ Logging estructurado con rotación de archivos")
-print("- ✓ Manejo de excepciones no capturadas")
-print("- ✓ Niveles de error (critical, error, warning, info)")
-print("- ✓ Historial de errores de sesión")
-print("- ✓ Handlers personalizados por tipo de error")
-print("- ✓ Decoradores para manejo automático (@handle_errors, @retry_on_error)")
-print("- ✓ Context manager para bloques de código")
-print("- ✓ Exportación de reportes de error")
-print("- ✓ Integración con NotificationManager")

@@ -24,8 +24,8 @@ import pandas as pd
 
 from .components import ModernButton, StatusIndicator, RoundedWidget
 from .styles import *
-from ..utils.file_manager import FileManager
-from ..config.config_manager import ConfigManager
+from utils.file_manager import FileManager
+from config.config_manager import ConfigManager
 
 class MeetingHistoryWidget(QWidget):
     """Widget principal para el historial de reuniones"""
@@ -46,7 +46,7 @@ class MeetingHistoryWidget(QWidget):
         
     def init_ui(self):
         """Inicializa la interfaz de usuario"""
-        self.setStyleSheet(MAIN_WINDOW_STYLE)
+        self.setStyleSheet(WINDOW_STYLE)
         
         # Layout principal
         main_layout = QVBoxLayout(self)
@@ -830,7 +830,7 @@ class MeetingHistoryWidget(QWidget):
                 background-color: {COLORS['secondary_bg']};
             }}
             QProgressBar::chunk {{
-                background-color: {COLORS['primary']};
+                background-color: {COLORS['active_bg']};
                 border-radius: 3px;
             }}
         """)
@@ -975,7 +975,7 @@ class MeetingHistoryWidget(QWidget):
         
         # Crear series
         bar_set = QBarSet("Reuniones")
-        bar_set.setColor(QColor(COLORS['primary']))
+        bar_set.setColor(QColor(COLORS['active_bg']))
         
         categories = []
         for month, count in sorted_months[-12:]:  # Últimos 12 meses
@@ -1133,7 +1133,7 @@ QTableWidget::item {{
 }}
 
 QTableWidget::item:selected {{
-    background-color: {COLORS['primary']};
+    background-color: {COLORS['active_bg']};
     color: white;
 }}
 
@@ -1142,7 +1142,7 @@ QHeaderView::section {{
     color: {COLORS['text_primary']};
     padding: 10px;
     border: none;
-    border-bottom: 2px solid {COLORS['primary']};
+    border-bottom: 2px solid {COLORS['active_bg']};
     font-weight: bold;
 }}
 """
@@ -1207,7 +1207,7 @@ QMenu::item {{
 }}
 
 QMenu::item:selected {{
-    background-color: {COLORS['primary']};
+    background-color: {COLORS['active_bg']};
     color: white;
 }}
 

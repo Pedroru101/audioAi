@@ -18,12 +18,12 @@ from PyQt5.QtGui import QIcon
 from config.config_manager import ConfigManager
 from config.settings import *
 from utils.file_manager import FileManager
-from utils.error_handler import get_error_manager, error_handler
+from utils.error_manager import ErrorManager
 from utils.auto_updater import AutoUpdater  # Asume tu versión existente; fusioné con la mía abajo
-from ui.floating_ui import FloatingUI
+# from ui.floating_ui import FloatingUI
 from ui.classic_ui import ClassicUI
 from ui.modern_ui import ModernUI
-from ui.config_ui import ConfigDialog
+# from ui.config_ui import ConfigUI
 from ui.history_ui import MeetingHistoryWidget
 from audio.recorder import AudioRecorder
 from audio.transcriber import AudioTranscriber
@@ -46,7 +46,7 @@ class MeetingAssistantApp:
 
     def __init__(self):
         # Inicializar error manager
-        self.error_manager = get_error_manager()
+        self.error_manager = ErrorManager()
         self.error_manager.log_info(f"Iniciando Meeting Assistant Pro v{APP_VERSION}")
 
         # Configuración
@@ -55,12 +55,12 @@ class MeetingAssistantApp:
         self.file_manager = FileManager(self.config_manager)
 
         # Componentes principales
-        self.audio_recorder = AudioRecorder(self.config_manager)
+        self.audio_recorder = AudioRecorder(self.config_manager, self.file_manager)
         self.transcriber = AudioTranscriber(self.config_manager)
         self.llm_processor = LLMProcessor(self.config_manager)
 
         # Auto-updater (fusionado con tu versión existente)
-        self.updater = AutoUpdater(APP_VERSION, self.config_manager, self.file_manager)  # Extendí el init
+        self.updater = AutoUpdater(self.config_manager, self.file_manager)
         self.updater.schedule_update_check(interval_hours=24)
 
         # Interfaces
@@ -79,7 +79,7 @@ class MeetingAssistantApp:
         # Inicializar
         self.setup_application()
 
-    @error_handler
+    @ErrorManager.handle_errors()
     def setup_application(self):
         """Configura la aplicación"""
         # Crear directorios necesarios
@@ -204,7 +204,7 @@ class MeetingAssistantApp:
     def initialize_ui(self):
         """Inicializa la interfaz de usuario"""
         # Siempre crear la UI flotante
-        self.floating_ui = FloatingUI(self)
+        # self.floating_ui = FloatingUI(self)
 
         # Crear UI principal según preferencia
         if self.preferred_ui == 'classic':
@@ -216,10 +216,9 @@ class MeetingAssistantApp:
             self.main_ui = self.floating_ui
 
         # Mostrar UI
-        if self.preferred_ui == 'floating':
-            self.floating_ui.show()
-        else:
-            self.main_ui.show()
+        # if self.preferred_ui == 'floating':
+        #     self.floating_ui.show()
+        
 
     def show_main_window(self):
         """Muestra la ventana principal"""
@@ -228,7 +227,7 @@ class MeetingAssistantApp:
             self.main_ui.raise_()
             self.main_ui.activateWindow()
 
-    @error_handler
+    @ErrorManager.handle_errors()
     def start_recording(self):
         """Inicia una nueva grabación"""
         if self.is_recording:
@@ -258,7 +257,7 @@ class MeetingAssistantApp:
             self.error_manager.log_error(f"Error al iniciar grabación: {str(e)}")
             raise
 
-    @error_handler
+    @ErrorManager.handle_errors()
     def stop_recording(self):
         """Detiene la grabación actual"""
         if not self.is_recording:
@@ -288,7 +287,7 @@ class MeetingAssistantApp:
             self.error_manager.log_error(f"Error al detener grabación: {str(e)}")
             raise
 
-    @error_handler
+    @ErrorManager.handle_errors()
     def process_recording(self, audio_file: str, meeting_id: str):
         """Procesa la grabación"""
         try:
@@ -333,11 +332,11 @@ class MeetingAssistantApp:
 
     def open_config_dialog(self):
         """Abre el diálogo de configuración"""
-        if not self.config_dialog:
-            self.config_dialog = ConfigDialog(self.config_manager, parent=self.main_ui)
+        # if not self.config_dialog:
+        #     # self.config_dialog = ConfigUI(self.config_manager, parent=self.main_ui)
 
-        self.config_dialog.show()
-        self.config_dialog.raise_()
+        # self.config_dialog.show()
+        # self.config_dialog.raise_()
 
     def open_history_window(self):
         """Abre la ventana de historial"""
@@ -425,10 +424,7 @@ def main():
     app.setApplicationDisplayName("Meeting Assistant Pro")
     app.setOrganizationName("MIA Development Team")
 
-    # Verificar instancia única
-    if app.isRunning():
-        print("La aplicación ya está en ejecución")
-        sys.exit(1)
+    
 
     # Crear ventana principal
     meeting_assistant = MeetingAssistantApp()

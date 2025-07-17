@@ -1,4 +1,111 @@
 {
+  "ui_mode": "floating",
+  "theme": "dark",
+  "window_opacity": 0.95,
+  "always_on_top": true,
+  "start_minimized": false,
+  "language": "es",
+  "audio_input_device": "default",
+  "audio_output_device": "default",
+  "audio_quality": "high",
+  "audio_format": "wav",
+  "sample_rate": 44100,
+  "channels": 1,
+  "record_system_audio": true,
+  "record_microphone": true,
+  "save_path": "C:\\Users\\quint\\MeetingAssistant_Recordings",
+  "temp_path": "C:\\Users\\quint\\.meeting_assistant\\temp",
+  "transcription_provider": "local",
+  "whisper_model_size": "base",
+  "whisper_language": null,
+  "whisper_api_key": "",
+  "transcription_api_provider": "openai",
+  "llm_provider": "local",
+  "api_provider": "openai",
+  "api_key": "",
+  "api_model_name": "gpt-4o",
+  "api_temperature": 0.7,
+  "api_max_tokens": 2000,
+  "openrouter_site_url": "http://localhost:3000",
+  "openrouter_app_name": "Meeting Assistant Pro",
+  "ollama_host": "http://localhost",
+  "ollama_port": "11434",
+  "local_model_name": "llama3",
+  "local_temperature": 0.7,
+  "local_max_tokens": 2000,
+  "auto_process": true,
+  "generate_summary": true,
+  "generate_actions": true,
+  "generate_insights": true,
+  "generate_analytics": true,
+  "export_formats": [
+    "md",
+    "json",
+    "txt"
+  ],
+  "notifications_enabled": true,
+  "notification_sound": true,
+  "notification_position": "bottom-right",
+  "notification_duration": 3000,
+  "encryption_enabled": false,
+  "auto_delete_recordings": false,
+  "retention_days": 30,
+  "require_confirmation": true,
+  "hotkeys": {
+    "start_stop_recording": "Ctrl+Shift+R",
+    "pause_resume": "Ctrl+Shift+P",
+    "save_meeting": "Ctrl+Shift+S",
+    "open_settings": "Ctrl+Shift+O",
+    "minimize_restore": "Ctrl+Shift+M"
+  },
+  "meeting_context": {
+    "title": "",
+    "participants": [],
+    "objective": "",
+    "tags": []
+  },
+  "summary_prompt": "Analiza la siguiente transcripción y genera un resumen ejecutivo conciso.\n\nINSTRUCCIONES:\n- Máximo 200 palabras\n- Incluye los puntos clave discutidos\n- Menciona decisiones importantes\n- Usa un tono profesional y objetivo\n- Estructura en párrafos cortos\n\nTRANSCRIPCIÓN:\n",
+  "action_items_prompt": "Analiza la transcripción e identifica TODAS las acciones y tareas mencionadas.\n\nFORMATO REQUERIDO:\n| Acción | Responsable | Deadline | Prioridad |\n|--------|-------------|----------|-----------|\n| [Descripción clara] | [Nombre o \"No asignado\"] | [Fecha o \"Por definir\"] | [Alta/Media/Baja] |\n\nINSTRUCCIONES:\n- Incluye solo acciones concretas y realizables\n- Si no hay responsable claro, indica \"No asignado\"\n- Si no hay fecha, indica \"Por definir\"\n- Evalúa la prioridad según el contexto\n\nTRANSCRIPCIÓN:\n",
+  "advanced_analysis_prompt": "Eres MIA, un asistente experto en análisis de reuniones.\n\nTu tarea es analizar la transcripción y proporcionar un análisis completo y estructurado.\n\nFORMATO DE SALIDA REQUERIDO:\n\n## RESUMEN\n[Resumen ejecutivo de máximo 200 palabras con los puntos clave]\n\n## ACCIONES\n| Acción | Responsable | Deadline | Prioridad |\n|--------|-------------|----------|-----------|\n| [Acción 1] | [Nombre] | [Fecha] | [Alta/Media/Baja] |\n\n## INSIGHTS\n### Riesgos Identificados\n- [Riesgo 1 con breve explicación]\n- [Riesgo 2 con breve explicación]\n\n### Oportunidades\n- [Oportunidad 1 con potencial impacto]\n- [Oportunidad 2 con potencial impacto]\n\n### Recomendaciones\n- [Recomendación 1 accionable]\n- [Recomendación 2 accionable]\n\n## ANALYTICS\n- Duración estimada: [X minutos]\n- Participantes detectados: [número y nombres si es posible]\n- Tono general: [Positivo/Neutral/Negativo/Mixto]\n- Nivel de consenso: [Alto/Medio/Bajo]\n- Temas controversiales: [Sí/No - breve descripción si aplica]\n\n## TEMAS PRINCIPALES\n1. [Tema principal 1]\n2. [Tema principal 2]\n3. [Tema principal 3]\n4. [Tema principal 4]\n5. [Tema principal 5]\n\n## PRÓXIMOS PASOS SUGERIDOS\n1. [Paso 1 con timeline]\n2. [Paso 2 con timeline]\n3. [Paso 3 con timeline]\n\n## TAGS\n#tag1 #tag2 #tag3 #tag4 #tag5\n\n---JSON_START---\n{\n  \"summary\": \"resumen aquí\",\n  \"actions\": [\n    {\n      \"action\": \"descripción clara de la acción\",\n      \"responsible\": \"nombre del responsable\",\n      \"deadline\": \"fecha límite\",\n      \"priority\": \"Alta/Media/Baja\"\n    }\n  ],\n  \"insights\": {\n    \"risks\": [\"riesgo 1\", \"riesgo 2\"],\n    \"opportunities\": [\"oportunidad 1\", \"oportunidad 2\"],\n    \"recommendations\": [\"recomendación 1\", \"recomendación 2\"]\n  },\n  \"analytics\": {\n    \"estimated_duration\": \"X minutos\",\n    \"participants_count\": 0,\n    \"participants_names\": [\"nombre1\", \"nombre2\"],\n    \"general_tone\": \"Positivo/Neutral/Negativo/Mixto\",\n    \"consensus_level\": \"Alto/Medio/Bajo\",\n    \"controversial_topics\": false,\n    \"key_decisions\": [\"decisión 1\", \"decisión 2\"]\n  },\n  \"main_topics\": [\"tema1\", \"tema2\", \"tema3\", \"tema4\", \"tema5\"],\n  \"next_steps\": [\n    {\"step\": \"descripción\", \"timeline\": \"cuando\"},\n    {\"step\": \"descripción\", \"timeline\": \"cuando\"}\n  ],\n  \"tags\": [\"tag1\", \"tag2\", \"tag3\", \"tag4\", \"tag5\"],\n  \"meeting_type\": \"Brainstorming/Planning/Review/Decision/Informative/Other\"\n}\n---JSON_END---\n\nIMPORTANTE:\n- Sé preciso y objetivo\n- Si no hay información suficiente para un campo, usa \"(No especificado)\" o valores por defecto\n- No inventes información que no esté en la transcripción\n- Prioriza la claridad y utilidad práctica\n\nTRANSCRIPCIÓN:\n",
+  "export_templates": {
+    "email_subject": "Resumen de Reunión: {title} - {date}",
+    "email_body": "Estimado equipo,\n\nAdjunto el resumen de la reunión \"{title}\" realizada el {date}.\n\n**Resumen Ejecutivo:**\n{summary}\n\n**Acciones Acordadas:**\n{actions}\n\n**Próximos Pasos:**\n{next_steps}\n\nSaludos,\nMeeting Assistant Pro\n",
+    "slack_format": "*Reunión:* {title}\n*Fecha:* {date}\n*Duración:* {duration}\n\n*Resumen:*\n{summary}\n\n*Acciones:*\n{actions}\n\n*Tags:* {tags}\n"
+  },
+  "integrations": {
+    "email": {
+      "enabled": false,
+      "smtp_server": "",
+      "smtp_port": 587,
+      "smtp_user": "",
+      "smtp_password": "",
+      "default_recipients": []
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": "",
+      "default_channel": "#general"
+    },
+    "calendar": {
+      "enabled": false,
+      "provider": "google",
+      "sync_enabled": false
+    }
+  },
+  "experimental_features": {
+    "speaker_diarization": false,
+    "emotion_detection": false,
+    "auto_chapters": false,
+    "video_recording": false,
+    "real_time_transcription": false,
+    "multi_language_meeting": false
+  },
+  "metrics": {
+    "track_usage": true,
+    "track_performance": true,
+    "anonymous_analytics": false,
+    "export_metrics": true
+  },
   "audio": {
     "sample_rate": 44100,
     "channels": 2,

@@ -1,5 +1,4 @@
-# Crear ai/llm_processor.py
-llm_processor_code = '''# ai/llm_processor.py
+# ai/llm_processor.py
 """
 Procesador principal para interactuar con diferentes LLMs.
 Soporta OpenAI, Ollama y otros proveedores vía OpenRouter.
@@ -533,10 +532,3 @@ class LLMProcessor:
                     }
         
         return None
-'''
-
-# Guardar el archivo
-with open('llm_processor.py', 'w', encoding='utf-8') as f:
-    f.write(llm_processor_code)
-
-print("✅ ai/llm_processor.py creado exitosamente")

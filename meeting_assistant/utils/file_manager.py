@@ -1,5 +1,4 @@
-# Crear file_manager.py
-file_manager_code = '''# utils/file_manager.py
+# utils/file_manager.py
 import os
 import json
 import shutil
@@ -570,19 +569,3 @@ class FileManager:
             integrity[file_type] = file_path.exists()
         
         return integrity
-'''
-
-# Guardar el archivo
-with open('file_manager.py', 'w', encoding='utf-8') as f:
-    f.write(file_manager_code)
-
-print("✅ file_manager.py creado exitosamente")
-print("\nCaracterísticas implementadas:")
-print("- ✓ Creación automática de estructura de carpetas")
-print("- ✓ Gestión de archivos de reunión")
-print("- ✓ Sistema de exportación (ZIP, Markdown)")
-print("- ✓ Listado y búsqueda de reuniones")
-print("- ✓ Limpieza automática según retención")
-print("- ✓ Verificación de integridad")
-print("- ✓ Información de almacenamiento")
-print("- ✓ Sistema de backups antes de eliminar")

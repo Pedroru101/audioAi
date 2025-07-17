@@ -1,5 +1,4 @@
-# Crear config_manager.py mejorado
-config_manager_code = '''# config/config_manager.py
+# config/config_manager.py
 import json
 import os
 from pathlib import Path
@@ -365,18 +364,3 @@ class ConfigManager:
                 'calendar': self.config.get('integrations', {}).get('calendar', {}).get('enabled', False)
             }
         }
-'''
-
-# Guardar el archivo
-with open('config_manager.py', 'w', encoding='utf-8') as f:
-    f.write(config_manager_code)
-
-print("✅ config_manager.py creado exitosamente")
-print("\nCaracterísticas implementadas:")
-print("- ✓ Carga y guardado persistente de configuración")
-print("- ✓ Validación inteligente de valores")
-print("- ✓ Sistema de backups automáticos")
-print("- ✓ Soporte para configuración anidada")
-print("- ✓ Importación/exportación de configuraciones")
-print("- ✓ Validación de API keys y modelos")
-print("- ✓ Gestión de rutas y directorios")

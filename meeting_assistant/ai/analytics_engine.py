@@ -1,5 +1,4 @@
-# Crear ai/analytics_engine.py
-analytics_engine_code = '''# ai/analytics_engine.py
+# ai/analytics_engine.py
 """
 Motor de análisis avanzado para extraer métricas y estadísticas
 de las transcripciones y resultados del procesamiento.
@@ -552,15 +551,15 @@ class AnalyticsEngine:
     
     def _calculate_discussion_depth(self, text: str) -> float:
         """Calcula la profundidad de la discusión."""
-        # Indicadores de profundidad
-        depth_indicators = [
-            'por qué', 'porque', 'debido a', 'causa', 'razón',
-            'consecuencia', 'impacto', 'resultado', 'efecto',
-            'analizar', 'evaluar', 'considerar', 'reflexionar'
+        # Buscar conectores lógicos
+        logical_connectors = [
+            'primero', 'segundo', 'tercero', 'finalmente',
+            'por lo tanto', 'en consecuencia', 'además',
+            'sin embargo', 'por otro lado', 'en resumen'
         ]
         
         text_lower = text.lower()
-        depth_count = sum(1 for indicator in depth_indicators if indicator in text_lower)
+        connector_count = sum(1 for connector in logical_connectors if connector in text_lower)
         
         # Normalizar por longitud del texto
         words = text.split()
@@ -827,37 +826,7 @@ class AnalyticsEngine:
     
     def generate_analytics_report(self, analysis: Dict[str, Any]) -> str:
         """Genera un reporte de analytics en formato markdown."""
-        report = f"""# Reporte de Analytics - Reunión
-
-**Fecha de análisis**: {analysis['timestamp']}
-**Score general**: {analysis['overall_score']}/1.0
-
-## Métricas Básicas
-- **Duración estimada**: {analysis['basic_metrics']['estimated_duration_formatted']}
-- **Total de palabras**: {analysis['basic_metrics']['total_words']:,}
-- **Diversidad léxica**: {analysis['basic_metrics']['lexical_diversity']:.2%}
-
-## Análisis de Sentimiento
-- **Sentimiento dominante**: {analysis['sentiment_analysis']['dominant']}
-- **Score de sentimiento**: {analysis['sentiment_analysis']['score']}
-- **Progresión**: {analysis['sentiment_analysis']['progression']}
-
-## Eficiencia de la Reunión
-- **Score de eficiencia**: {analysis['efficiency_metrics']['efficiency_score']}
-- **Índice de productividad**: {analysis['efficiency_metrics']['productivity_index']}
-- **Velocidad de reunión**: {analysis['efficiency_metrics']['meeting_velocity']:.2f} temas/minuto
-
-## Calidad del Contenido
-- **Calidad general**: {analysis['quality_indicators']['overall_quality']}
-- **Fortalezas**: {', '.join(analysis['quality_indicators']['strengths'])}
-- **Áreas de mejora**: {', '.join(analysis['quality_indicators']['areas_for_improvement'])}
-
-## Patrones de Interacción
-- **Consenso**: {analysis['interaction_patterns']['consensus_indicator']:.2%}
-- **Profundidad de discusión**: {analysis['interaction_patterns']['discussion_depth']}
-
-## Recomendaciones
-"""
+        report = f"""# Reporte de Analytics - Reunión\n\n**Fecha de análisis**: {analysis['timestamp']}\n**Score general**: {analysis['overall_score']}/1.0\n\n## Métricas Básicas\n- **Duración estimada**: {analysis['basic_metrics']['estimated_duration_formatted']}\n- **Total de palabras**: {analysis['basic_metrics']['total_words']:,}\n- **Diversidad léxica**: {analysis['basic_metrics']['lexical_diversity']:.2%}\n\n## Análisis de Sentimiento\n- **Sentimiento dominante**: {analysis['sentiment_analysis']['dominant']}\n- **Score de sentimiento**: {analysis['sentiment_analysis']['score']}\n- **Progresión**: {analysis['sentiment_analysis']['progression']}\n\n## Eficiencia de la Reunión\n- **Score de eficiencia**: {analysis['efficiency_metrics']['efficiency_score']}\n- **Índice de productividad**: {analysis['efficiency_metrics']['productivity_index']}\n- **Velocidad de reunión**: {analysis['efficiency_metrics']['meeting_velocity']:.2f} temas/minuto\n\n## Calidad del Contenido\n- **Calidad general**: {analysis['quality_indicators']['overall_quality']}\n- **Fortalezas**: {', '.join(analysis['quality_indicators']['strengths'])}\n- **Áreas de mejora**: {', '.join(analysis['quality_indicators']['areas_for_improvement'])}\n\n## Patrones de Interacción\n- **Consenso**: {analysis['interaction_patterns']['consensus_indicator']:.2%}\n- **Profundidad de discusión**: {analysis['interaction_patterns']['discussion_depth']}\n\n## Recomendaciones\n"""
         
         for rec in analysis['recommendations']:
             report += f"\n### {rec['priority'].upper()} - {rec['type']}\n"
@@ -865,10 +834,3 @@ class AnalyticsEngine:
             report += f"**Impacto esperado**: {rec['impact']}\n"
         
         return report
-'''
-
-# Guardar el archivo
-with open('analytics_engine.py', 'w', encoding='utf-8') as f:
-    f.write(analytics_engine_code)
-
-print("✅ ai/analytics_engine.py creado exitosamente")
