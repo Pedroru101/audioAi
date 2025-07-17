@@ -23,7 +23,7 @@ from utils.auto_updater import AutoUpdater  # Asume tu versión existente; fusio
 from ui.floating_ui import FloatingUI
 from ui.classic_ui import ClassicUI
 from ui.modern_ui import ModernUI
-# from ui.config_ui import ConfigUI
+from ui.config_ui import ConfigUI
 from ui.history_ui import MeetingHistoryWidget
 from audio.recorder import AudioRecorder
 from audio.transcriber import AudioTranscriber
@@ -37,6 +37,7 @@ import platform
 import ctypes
 from plyer import notification
 from pynput import keyboard
+import tkinter as tk
 
 # Versión de la aplicación
 APP_VERSION = "1.0.0"
@@ -168,7 +169,7 @@ class MeetingAssistantApp:
         tray_menu.addAction(record_action)
 
         history_action = QAction("Historial", self.tray_icon)
-        history_action.triggered.connect(self.open_history_window)
+        history_action.triggered.connect(lambda checked: self.open_history_window())
         tray_menu.addAction(history_action)
 
         tray_menu.addSeparator()
@@ -204,7 +205,13 @@ class MeetingAssistantApp:
     def initialize_ui(self):
         """Inicializa la interfaz de usuario"""
         # Crear UI flotante
-        self.floating_ui = FloatingUI(self)
+        # Iniciar ventana tkinter para FloatingUI
+        self.tk_root = tk.Tk()
+        # Integrar bucle de eventos tkinter en el bucle de Qt
+        self.tk_timer = QTimer()
+        self.tk_timer.timeout.connect(self.tk_root.update)
+        self.tk_timer.start(50)
+        self.floating_ui = FloatingUI(self.tk_root, self.start_recording, self.open_config_dialog, self.quit_application)
 
         # Crear UI principal según preferencia
         if self.preferred_ui == 'classic':
@@ -221,9 +228,14 @@ class MeetingAssistantApp:
     def show_main_window(self):
         """Muestra la ventana principal"""
         if self.main_ui:
-            self.main_ui.show()
-            self.main_ui.raise_()
-            self.main_ui.activateWindow()
+            # Si es UI flotante (tkinter), solo mostrarla
+            if isinstance(self.main_ui, FloatingUI):
+                self.main_ui.show()
+            else:
+                # Qt UIs
+                self.main_ui.show()
+                self.main_ui.raise_()
+                self.main_ui.activateWindow()
 
     @ErrorManager.handle_errors()
     def start_recording(self):
@@ -330,22 +342,37 @@ class MeetingAssistantApp:
 
     def open_config_dialog(self):
         """Abre el diálogo de configuración"""
-        # if not self.config_dialog:
-        #     # self.config_dialog = ConfigUI(self.config_manager, parent=self.main_ui)
+        if not self.config_dialog:
+            # Crear diálogo de configuración en tkinter
+            dialog_root = tk.Toplevel(self.tk_root)
+            self.config_dialog = ConfigUI(dialog_root, self.config_manager, on_close=self._on_config_close)
+        else:
+            # Traer ventana existente al frente
+            self.config_dialog.root.deiconify()
+            self.config_dialog.root.lift()
 
-        # self.config_dialog.show()
-        # self.config_dialog.raise_()
+    def _on_config_close(self):
+        """Callback al cerrar diálogo de configuración."""
+        self.config_dialog = None
 
-    def open_history_window(self):
-        """Abre la ventana de historial"""
+    @ErrorManager.handle_errors()
+    def open_history_window(self, show_window=True):
+        """Abre la ventana de historial
+        
+        Args:
+            show_window: Si es True, muestra la ventana después de crearla
+        """
         if not self.history_window or not self.history_window.isVisible():
             self.history_window = MeetingHistoryWidget(
                 self.config_manager,
                 self.file_manager
             )
 
-        self.history_window.show()
-        self.history_window.raise_()
+        if show_window:
+            self.history_window.show()
+            self.history_window.raise_()
+        
+        return self.history_window
 
     def switch_ui(self, ui_type: str):
         """Cambia el tipo de interfaz"""

@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QHeaderView, QMenu, QAction, QFileDialog, QCheckBox, QSpinBox
 )
 from PyQt5.QtCore import Qt, QDate, QThread, pyqtSignal, QTimer
-from PyQt5.QtGui import QIcon, QFont, QColor
+from PyQt5.QtGui import QIcon, QFont, QColor, QPainter
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis
 
 import json
@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import pandas as pd
+import os
 
 from .components import ModernButton, StatusIndicator, RoundedWidget
 from .styles import *

@@ -8,6 +8,7 @@ class FloatingUI:
         self.on_exit = on_exit
         self.is_recording = False
         self._offset = {'x': 0, 'y': 0}
+        self._dragging = False
 
         # --- Configuración de la ventana flotante ---
         # Elimina la barra de título y los bordes
@@ -29,7 +30,7 @@ class FloatingUI:
         
         # --- Vinculación de eventos ---
         # Clic izquierdo para grabar/detener
-        self.canvas.tag_bind(self.circle, '<Button-1>', self.toggle_recording_visuals)
+        self.canvas.tag_bind(self.circle, '<ButtonRelease-1>', self.toggle_recording_visuals)
         
         # Clic derecho para abrir configuración (opcional, pero útil)
         self.canvas.tag_bind(self.circle, '<Button-3>', self.open_settings_menu)
@@ -41,6 +42,7 @@ class FloatingUI:
 
     def start_move(self, event):
         """Registra la posición inicial del clic para mover la ventana."""
+        self._dragging = False
         self._offset['x'] = event.x
         self._offset['y'] = event.y
 
@@ -51,12 +53,16 @@ class FloatingUI:
 
     def on_motion(self, event):
         """Mueve la ventana según el movimiento del ratón."""
+        self._dragging = True
         new_x = self.root.winfo_x() + event.x - self._offset['x']
         new_y = self.root.winfo_y() + event.y - self._offset['y']
         self.root.geometry(f"+{new_x}+{new_y}")
 
     def toggle_recording_visuals(self, event=None):
         """Cambia el estado y el color del botón."""
+        # Ignorar toggle si fue arrastre
+        if getattr(self, '_dragging', False):
+            return
         self.is_recording = not self.is_recording
         self.update_visual_state()
         # Llama a la función de lógica de grabación real
@@ -88,3 +94,20 @@ class FloatingUI:
         # Aquí se integraría con notifications.py
         print(f"NOTIFICACIÓN: {message}")
         # Podrías crear una pequeña ventana emergente temporal aquí
+
+    def show(self):
+        """Muestra la ventana flotante."""
+        self.root.deiconify()
+
+    def hide(self):
+        """Oculta la ventana flotante."""
+        self.root.withdraw()
+
+    def update_recording_state(self, is_recording):
+        """Actualiza el estado de grabación desde la lógica."""
+        self.is_recording = is_recording
+        self.update_visual_state()
+
+    def update_status(self, message):
+        """Actualiza el estado mostrando notificación."""
+        self.show_notification(message)

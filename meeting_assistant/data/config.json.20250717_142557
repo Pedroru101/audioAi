@@ -160,5 +160,6 @@
     "sound_enabled": true,
     "popup_duration": 5,
     "show_notifications": true
-  }
+  },
+  "github_repo": "Pedroru101/audioAi"
 }

@@ -6,6 +6,7 @@ import sounddevice as sd
 import requests
 import threading
 import os
+import queue
 
 class ConfigUI:
     # ... (__init__ y otras funciones iniciales sin cambios)
@@ -23,6 +24,8 @@ class ConfigUI:
         self.save_path_var = tk.StringVar(value=self.config.get("save_path", ""))
         # Novedad: Variable para el proveedor de API
         self.api_provider_var = tk.StringVar(value=self.config.get("api_provider", "openai"))
+        # Cola para resultados de Ollama
+        self._model_queue = queue.Queue()
 
         notebook = ttk.Notebook(self.root)
         notebook.pack(pady=10, padx=10, fill="both", expand=True)
@@ -41,6 +44,8 @@ class ConfigUI:
         
         self._create_action_buttons(self.root)
         self._on_provider_change()
+        # Iniciar polling de resultados de Ollama
+        self._poll_ollama_queue()
 
     def _create_ia_settings(self, parent):
         # ... (frame de LLM y radio buttons sin cambios)
@@ -224,23 +229,35 @@ class ConfigUI:
         ttk.Button(path_frame, text="Explorar...", command=self._browse_folder).pack(side="right")
 
     def _detect_ollama_models_thread(self):
-        self.local_model_combo.set("Conectando...")
-        threading.Thread(target=self._detect_ollama_models, daemon=True).start()
-
-    def _detect_ollama_models(self):
         host = self.ollama_host_entry.get()
         port = self.ollama_port_entry.get()
+        self.local_model_combo.set("Conectando...")
+        threading.Thread(target=self._detect_ollama_models, args=(host, port), daemon=True).start()
+
+    def _detect_ollama_models(self, host, port):
+        """Hilo: obtiene modelos de Ollama y encola resultado."""
         url = f"{host}:{port}/api/tags"
         try:
             response = requests.get(url, timeout=3)
             response.raise_for_status()
             models = [m['name'] for m in response.json().get('models', [])]
-            if models:
-                self.root.after(0, self._update_ollama_list, models)
-            else:
-                self.root.after(0, self._update_ollama_list, [], "Conexión exitosa, pero no hay modelos.")
-        except requests.exceptions.RequestException as e:
-            self.root.after(0, self._update_ollama_list, [], f"Error de conexión a {url}.")
+            message = None if models else "Conexión exitosa, pero no hay modelos."
+        except requests.exceptions.RequestException:
+            models = []
+            message = f"Error de conexión a {url}."
+        # Encolar resultado para el mainloop
+        self._model_queue.put((models, message))
+
+    def _poll_ollama_queue(self):
+        """Polling periódico para procesar resultados de Ollama."""
+        try:
+            models, message = self._model_queue.get_nowait()
+        except queue.Empty:
+            pass
+        else:
+            self._update_ollama_list(models, message)
+        finally:
+            self.root.after(100, self._poll_ollama_queue)
 
     def _create_history_settings(self, parent):
         history_frame = ttk.LabelFrame(parent, text="Historial de Reuniones", padding="10")
